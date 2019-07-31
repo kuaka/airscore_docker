@@ -1,0 +1,49 @@
+version: '3.4'
+
+services:
+
+  web:
+    # ** NGINX Web Server
+    image: nginx:latest
+    depends_on:
+      - php_dev
+    logging:
+      driver: json-file
+      options:
+        max-size: "4m"
+        max-file: "20"
+    restart: always
+    ports:
+      - 8080:80/tcp
+    volumes:
+      - ./web:/web
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./nginx/snippets:/etc/nginx/snippets
+    networks:
+      - dev
+    container_name: nginx
+
+  php_dev:
+    # Development ** PHP 7.x latest
+    build:
+      context: ./php/dev
+      dockerfile: Dockerfile.dev 
+    logging:
+      driver: json-file
+      options:
+        max-size: "4m"
+        max-file: "20"
+    restart: always
+    ports:
+      - 9001:9000
+    volumes:
+      - ./web:/web
+      - ./php/dev/dev.custom.php.ini:/usr/local/etc/php/conf.d/custom.php.ini
+      - ./php/dev/dev.log.conf:/usr/local/etc/php-fpm.d/zz-log.conf
+    networks:
+      - dev
+    container_name: php_dev
+
+networks:
+  dev:
+    driver: bridge
